@@ -4,13 +4,6 @@ A simple Verilog verification tool based on [MiniSat](minisat.se).
 
 ## Install
 
-### Git clone this repo
-
-`git clone --recurse-submodules https://github.com/jforgue/simple-vsat.git`
-or
-`git clone https://github.com/jforgue/simple-vsat.git` and `git submodule update --init`
-
-## Setup
-
-1. Run CMake
-2. Run Make
+1. Clone this repo `git clone https://github.com/jforgue/simple-vsat.git`
+2. Run CMake `cmake .`
+3. Run Make `make`
