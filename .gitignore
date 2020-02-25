@@ -46,3 +46,6 @@ _deps
 
 # VS Code
 *.vscode
+
+# Dimacs out file
+out.dimacs

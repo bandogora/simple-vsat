@@ -23,44 +23,47 @@
 #include <string>
 #include <regex>
 #include <parser.h>
-//#include <minisat/minisat/core/Main.h>
+//#include <minisat.h> some how include minisat
 
+using namespace Parse;
 using namespace std;
 
 ofstream outfile ("out.dimacs");
 
-bool isNumber(const char number[]) {
+int isNumber(const char str[]) {
+  string numString;
   int i = 0;
-
-  // Check for negative numbers
-  if (number[0] == '-')
-    i = 1;
-  for (; number[i] != 0; i++) {
-    //if (number[i] > '9' || number[i] < '0')
-    if (!isdigit(number[i])) {
-      return false;
-    }
+  while(isdigit(str[i])) {
+    numString += str[i];
+    i++;
   }
-  return true;
+  int num = atoi(numString.c_str());
+  return num;
 }
 
 int main(int argc, char const *argv[]) {
-
-  const regex verilog("^.*\.(vh|v)$");
+  // Create regex for file ending
+  const regex v_file("^.*\.(vh|v)$");
 
   // Check first argument  is a verilog file
-  if (!regex_match( argv[0], verilog)) {
-      cerr << strerror(1) << "ERROR! Could not open file: " << argv[0] << endl;
+  smatch m;
+  string str = argv[1];
+  if (!regex_match(str, m, v_file)) {
+      cerr << strerror(1) << "ERROR! Could not open file: " << argv[1] << endl;
+      exit(1);
+  }
+  else {
+    cout << "is verilog file" << endl;
   }
 
   // Check second argument is a number
-  if (!isNumber(argv[1])) {
-      cerr << strerror(1) << argv[1] << " is not a number" << endl;
+  if (!isNumber(argv[2])) {
+      cerr << strerror(1) << argv[2] << " is not a positive integer" << endl;
   }
-
+  // Initiate vars
   string line;
   int line_num = 1;
-  ifstream f (argv[0]);
+  ifstream f (argv[1]);
 
   // Open verilog file
   if (!f.is_open()) {
@@ -70,14 +73,15 @@ int main(int argc, char const *argv[]) {
   // Write fist line comment
   outfile << "c First line comment" << endl;
 
+  // Create Parser instance
+  parser file;
+
   // Let the user know whats happening
-  cout << endl << "Parsing";
+  cout << "Parsing..." << endl;
   while(getline(f, line)) {
-    cout << '.';
-    parse_line(line, line_num);
+    file.parse_line(line, line_num);
     line_num ++;
   }
-  cout << endl;
 
   // Close dimacs file
   outfile.close();
