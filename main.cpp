@@ -28,8 +28,6 @@
 using namespace Parse;
 using namespace std;
 
-ofstream outfile ("out.dimacs");
-
 int isNumber(const char str[]) {
   string numString;
   int i = 0;
@@ -41,6 +39,19 @@ int isNumber(const char str[]) {
   return num;
 }
 
+void write_to_dimacs() {
+  cout << "Witing to Dimacs..." << endl;
+
+  // Open new dimacs file
+  ofstream outfile ("out.dimacs");
+
+  // Write fist line comment
+  outfile << "c First line comment" << endl;
+
+  // Close dimacs file
+  outfile.close();
+} 
+
 int main(int argc, char const *argv[]) {
   // Create regex for file ending
   const regex v_file("^.*\.(vh|v)$");
@@ -49,8 +60,8 @@ int main(int argc, char const *argv[]) {
   smatch m;
   string str = argv[1];
   if (!regex_match(str, m, v_file)) {
-      cerr << strerror(1) << "ERROR! Could not open file: " << argv[1] << endl;
-      exit(1);
+    cout << "ERROR! Could not open file: " << argv[1] << endl;
+    exit(1);
   }
   else {
     cout << "is verilog file" << endl;
@@ -58,7 +69,8 @@ int main(int argc, char const *argv[]) {
 
   // Check second argument is a number
   if (!isNumber(argv[2])) {
-      cerr << strerror(1) << argv[2] << " is not a positive integer" << endl;
+    cout << argv[2] << " is not a positive integer" << endl;
+    exit(1);
   }
   // Initiate vars
   string line;
@@ -67,11 +79,9 @@ int main(int argc, char const *argv[]) {
 
   // Open verilog file
   if (!f.is_open()) {
-      cerr << strerror(1) << "Error while opening file";
+    cout << "Error while opening file";
+    exit(1);
   }
-
-  // Write fist line comment
-  outfile << "c First line comment" << endl;
 
   // Create Parser instance
   parser file;
@@ -83,11 +93,9 @@ int main(int argc, char const *argv[]) {
     line_num ++;
   }
 
-  // Close dimacs file
-  outfile.close();
-
   if (f.bad()) {
-    cerr << strerror(1) << "Error while reading file";
+    cout << "Error while reading file";
+    exit(1);
   }
   return 0;
 }

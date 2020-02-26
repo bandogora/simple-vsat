@@ -1,6 +1,12 @@
 # simple-vsat
 
-A simple Verilog verification tool based on [MiniSat](minisat.se).
+A simple Verilog verification tool based on the Tseytin transformation and [MiniSat](minisat.se) solver.
+
+## Requirments
+
+- The verilog file given to the program must be gate level.
+- C++ 11 or newer
+- CMake 3.10 or newer
 
 ## Install
 
