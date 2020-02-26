@@ -2,25 +2,26 @@
 #include <iostream>
 #include <string>
 #include <regex>
-#include <sstream>
-#include <vector>
 
 using namespace Parse;
 using namespace std;
 
-string seperate(stringstream ss) {
+const string delimiters = "(,";
 
-  vector<int> vect;
-
-  for (int i; ss >> i;) {
-    vect.push_back(i);
-    while (ss.peek() != '(') {
-      ss.ignore();
+void get_tokens(string str) {
+  size_t pos = 0;
+    string token;
+    if ((pos = str.find(delimiters[0])) != string::npos) {
+        token = str.substr(0, pos);
+        cout << token << endl;
+        str.erase(0, pos + 1);
     }
-    if (ss.peek() == ',') {
-        ss.ignore();
+    while ((pos = str.find(delimiters[1])) != string::npos) {
+      token = str.substr(0, pos);
+      cout << token << endl;
+      str.erase(0, pos + 1);
     }
-  }
+  cout << str << endl;
 }
 
 // Time to reinvent that wheel, poorly!
@@ -28,14 +29,14 @@ void parser::parse_line(string& line, int& line_num) {
   // get just the symbol
   const regex symbol("^[^\s]*");
 
-  stringstream ss(line);
-
   switch (line[0]) {
   case 'm': // module
     // Erase beginning and end chars we don't want
-    // i.e. "module test(in1,out1);" -> "test(in1,out1)"
+    // i.e. "module test(in1,out1);" -> "test(in1,out1"
     line.erase(line.begin(), line.begin() + 7); // Erase symbol
     line.pop_back();
+    line.pop_back();
+    get_tokens(line);
     cout << line << endl; // debug
     break;
   case 'i': // input
@@ -46,16 +47,21 @@ void parser::parse_line(string& line, int& line_num) {
     break;
   case 'o':
     if (line[1] == 'u') { // output
-        
+        line.erase(line.begin(), line.begin() + 7); // Erase symbol
+        line.pop_back();
     }
     else { // or
       // (~x + z)(~y + z)(x + y + ~z)
+      line.erase(line.begin(), line.begin() + 7); // Erase symbol
+      line.pop_back();
     }
     break;
   case 'r': // reg
     // We don't care about registers for dimacs
     break;
   case 'w': // wire
+    line.erase(line.begin(), line.begin() + 5); // Erase symbol
+    line.pop_back();
     break;
   case 'a':
     if (line[1] == 'n') { // and
