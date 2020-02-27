@@ -1,47 +1,66 @@
-#include <parser.h>
+// Example Tseytin transformation
+//
+// input x,y;
+// output z;
+// and g1(z,x,y)
+// a = 1; s0 = 5; b = 2;
+// (x v ~z)(y v ~z)(~x v ~y v z)
+
+// c and g1
+// 1 -2 0
+// 5 -2 0
+// -1 -5 2 0
+
+#include <fstream>
 #include <iostream>
-#include <string>
+#include <parser.h>
 #include <regex>
-#include <map>
+#include <string>
+#include <unordered_map>
 
 using namespace Parse;
 using namespace std;
 
+// Open new dimacs file for writing
+ofstream outfile ("out.dimacs");
+
 const string delimiters = "(,";
-map<string, int> wires;
+unordered_map<string, int> wires;
 int wire_num = 1;
 
 void get_tokens(string& str, int cnf, bool wire = false) {
-  size_t pos = 0;
+  size_t pos;
   string token;
   string new_line;
+  
   if ((pos = str.find(delimiters[0])) != string::npos) {
-      token = str.substr(0, pos);
-      cout << token << endl;
-      str.erase(0, pos + 1);
-  }
-  while ((pos = str.find(delimiters[1])) != string::npos) {
     token = str.substr(0, pos);
-    if (wire) {
-      wires.insert(pair(token, wire_num));
-      wire_num++;
-    }
-    else {
-      new_line += " " + wires.find(token)->second;
-    }
-    cout << token << endl;
     str.erase(0, pos + 1);
   }
+
+  while ((pos = str.find(delimiters[1])) != string::npos) {
+      token = str.substr(0, pos);
+      if (wire) {
+        wires.insert(pair(token, wire_num));
+        wire_num++;
+      }
+      else {
+        new_line += " " + to_string(wires.find(token)->second);
+      }
+      str.erase(0, pos + 1);
+  }
+
   if (wire) {
-    wires.insert(pair(token, wire_num));
+    wires.insert(pair(str, wire_num));
     wire_num++;
   }
   else {
-    new_line += " " + wires.find(token)->second;
+    new_line += " " + to_string(wires.find(str)->second);
+    new_line.erase(new_line.begin());
+    cout << new_line << " 0" << endl; // change to outfile
   }
-  new_line.erase(new_line.begin());
-  cout << new_line << " 0" << endl;
 }
+
 
 // Time to reinvent that wheel, poorly!
 void parser::parse_line(string& line, int& line_num) {
@@ -154,17 +173,6 @@ void parser::parse_line(string& line, int& line_num) {
     }
     break;
   }
+  // Close dimacs file
+  outfile.close();
 }
-
-// Example Tseytin transformation
-//
-// input x,y;
-// output z;
-// and g1(z,x,y)
-// a = 1; s0 = 5; b = 2;
-// (x v ~z)(y v ~z)(~x v ~y v z)
-
-// c and g1
-// 1 -2 0
-// 5 -2 0
-// -1 -5 2 0

@@ -39,19 +39,6 @@ int isNumber(const char str[]) {
   return num;
 }
 
-void write_to_dimacs() {
-  cout << "Witing to Dimacs..." << endl;
-
-  // Open new dimacs file
-  ofstream outfile ("out.dimacs");
-
-  // Write fist line comment
-  outfile << "c First line comment" << endl;
-
-  // Close dimacs file
-  outfile.close();
-} 
-
 int main(int argc, char const *argv[]) {
   // Create regex for file ending
   const regex v_file("^.*\.(vh|v)$");
