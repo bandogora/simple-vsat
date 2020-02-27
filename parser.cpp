@@ -76,10 +76,16 @@ void parser::parse_line(string& line, int& line_num) {
   case 'i': // input
     // "input in1,in2;" -> "in1,in2"
     cout << ("c " + line) << endl;
+    line.erase(line.begin(), line.begin() + 6);
+    line.pop_back();
+    get_tokens(line, 0, true);
     break;
   case 'o':
     if (line[1] == 'u') { // output
-        cout << ("c " + line) << endl;
+      cout << ("c " + line) << endl;
+      line.erase(line.begin(), line.begin() + 7);
+      line.pop_back();
+      get_tokens(line, 0, true);
     }
     else { // or
       // (~x + z)(~y + z)(x + y + ~z)
