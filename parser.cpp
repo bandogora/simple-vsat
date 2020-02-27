@@ -28,36 +28,72 @@ const string delimiters = "(,";
 unordered_map<string, int> wires;
 int wire_num = 1;
 
-void get_tokens(string& str, int cnf, bool wire = false) {
+void get_dimacss(string& str, int gate) {
   size_t pos;
-  string token;
-  string new_line;
+  string wire;
+  string cnf [3];
+  int i = 0;
+  string new_str;
   
   if ((pos = str.find(delimiters[0])) != string::npos) {
-    token = str.substr(0, pos);
     str.erase(0, pos + 1);
   }
 
   while ((pos = str.find(delimiters[1])) != string::npos) {
-      token = str.substr(0, pos);
-      if (wire) {
-        wires.insert({token, wire_num});
+      wire = str.substr(0, pos);
+      if (!gate) {
+        wires.insert({wire, wire_num});
         wire_num++;
       }
       else {
-        new_line += " " + to_string(wires.find(token)->second);
+        cnf[i] = to_string(wires.find(wire)->second);
       }
       str.erase(0, pos + 1);
+      i++;
   }
 
-  if (wire) {
+  if (!gate) {
     wires.insert({str, wire_num});
     wire_num++;
   }
   else {
-    new_line += " " + to_string(wires.find(str)->second);
-    new_line.erase(new_line.begin());
-    cout << new_line << " 0" << endl; // change to outfile
+    cnf[i] = to_string(wires.find(str)->second);
+  }
+
+  switch (gate) {
+  case 1: // or
+    // (~x + z)(~y + z)(x + y + ~z)
+    cout << "-" << cnf[1] << " " << cnf[0] << " 0" << endl;
+    cout << "-" << cnf[2] << " " << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " " << cnf[2] << "-" << cnf[0] << " 0" << endl;
+    break;
+  case 2: // and
+    // (x + ~z)(y + ~z)(~x + ~y + z)
+
+    break;
+  case 3: // nand
+    // (x + z)(y + z)(~x + ~y + ~z)
+    
+    break;
+  case 4: // not
+    // (~a v ~x)(a v x)
+    
+    break;
+  case 5: //nor
+    // (~x + ~z)(~y + ~z)(x + y + z)
+    
+    break;
+  case 6: //xor
+    // (~x + y + z)(x + ~y + z)(~x + ~y + ~z)(x + y + ~z)
+    
+    break;
+  case 7: // xnor
+    // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y +z)
+    
+    break;
+  
+  default:
+    break;
   }
 }
 
@@ -78,91 +114,84 @@ void parser::parse_line(string& line, int& line_num) {
     cout << ("c " + line) << endl;
     line.erase(line.begin(), line.begin() + 6);
     line.pop_back();
-    get_tokens(line, 0, true);
+    get_dimacss(line, 0);
     break;
   case 'o':
     if (line[1] == 'u') { // output
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 7);
       line.pop_back();
-      get_tokens(line, 0, true);
+      get_dimacss(line, 0);
     }
     else { // or
-      // (~x + z)(~y + z)(x + y + ~z)
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 3);
       line.pop_back();
       line.pop_back();
-      get_tokens(line, 3);
+      get_dimacss(line, 1);
     }
     break;
   case 'r': // reg
     cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
-      get_tokens(line, 0, true);
+      get_dimacss(line, 0);
     break;
   case 'w': // wire
     cout << ("c " + line) << endl;
     line.erase(line.begin(), line.begin() + 5);
     line.pop_back();
-    get_tokens(line, 0, true);
+    get_dimacss(line, 0);
     break;
   case 'a':
     if (line[1] == 'n') { // and
-      // (x + ~z)(y + ~z)(~x + ~y + z)
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
-      get_tokens(line, 3);
+      get_dimacss(line, 2);
     }
       // We can ignore always tags
     break;
   case 'n':
     if (line[1] == 'a') { // nand
-      // (x + z)(y + z)(~x + ~y + ~z)
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
-      get_tokens(line, 3);
+      get_dimacss(line, 3);
     }
     else { 
       if(line[2] == 't') { // not
-        // (~a v ~x)(a v x)
         cout << ("c " + line) << endl;
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
-        get_tokens(line, 3);
+        get_dimacss(line, 4);
       }
       else { // nor
-        // (~x + ~z)(~y + ~z)(x + y + z)
         cout << ("c " + line) << endl;
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
-        get_tokens(line, 3);
+        get_dimacss(line, 5);
       }
     }
     break;
   case 'x':
     if (line[1] == 'o') { // xor
-      // (~x + y + z)(x + ~y + z)(~x + ~y + ~z)(x + y + ~z)
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
-      get_tokens(line, 4);
+      get_dimacss(line, 6);
     }
     else { // xnor
-      // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y +z)
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
-      get_tokens(line, 4);
+      get_dimacss(line, 7);
     }
     break;
   case 'e': // end

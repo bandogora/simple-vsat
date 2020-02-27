@@ -50,9 +50,6 @@ int main(int argc, char const *argv[]) {
     cout << "ERROR! Could not open file: " << argv[1] << endl;
     exit(1);
   }
-  else {
-    cout << "is verilog file" << endl;
-  }
 
   // Check second argument is a number
   if (!isNumber(argv[2])) {
