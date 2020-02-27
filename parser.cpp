@@ -2,26 +2,45 @@
 #include <iostream>
 #include <string>
 #include <regex>
+#include <map>
 
 using namespace Parse;
 using namespace std;
 
 const string delimiters = "(,";
+map<string, int> wires;
+int wire_num = 1;
 
-void get_tokens(string str) {
+void get_tokens(string& str, int cnf, bool wire = false) {
   size_t pos = 0;
-    string token;
-    if ((pos = str.find(delimiters[0])) != string::npos) {
-        token = str.substr(0, pos);
-        cout << token << endl;
-        str.erase(0, pos + 1);
-    }
-    while ((pos = str.find(delimiters[1])) != string::npos) {
+  string token;
+  string new_line;
+  if ((pos = str.find(delimiters[0])) != string::npos) {
       token = str.substr(0, pos);
       cout << token << endl;
       str.erase(0, pos + 1);
+  }
+  while ((pos = str.find(delimiters[1])) != string::npos) {
+    token = str.substr(0, pos);
+    if (wire) {
+      wires.insert(pair(token, wire_num));
+      wire_num++;
     }
-  cout << str << endl;
+    else {
+      new_line += " " + wires.find(token)->second;
+    }
+    cout << token << endl;
+    str.erase(0, pos + 1);
+  }
+  if (wire) {
+    wires.insert(pair(token, wire_num));
+    wire_num++;
+  }
+  else {
+    new_line += " " + wires.find(token)->second;
+  }
+  new_line.erase(new_line.begin());
+  cout << new_line << " 0" << endl;
 }
 
 // Time to reinvent that wheel, poorly!
@@ -33,63 +52,92 @@ void parser::parse_line(string& line, int& line_num) {
   case 'm': // module
     // Erase beginning and end chars we don't want
     // i.e. "module test(in1,out1);" -> "test(in1,out1"
-    line.erase(line.begin(), line.begin() + 7); // Erase symbol
-    line.pop_back();
-    line.pop_back();
-    get_tokens(line);
-    cout << line << endl; // debug
+    cout << ("c " + line);
     break;
   case 'i': // input
     // "input in1,in2;" -> "in1,in2"
-    line.erase(line.begin(), line.begin() + 6); // Erase symbol
-    line.pop_back();
-    cout << line << endl; // debug
+    cout << ("c " + line);
     break;
   case 'o':
     if (line[1] == 'u') { // output
-        line.erase(line.begin(), line.begin() + 7); // Erase symbol
-        line.pop_back();
+        cout << ("c " + line);
     }
     else { // or
       // (~x + z)(~y + z)(x + y + ~z)
-      line.erase(line.begin(), line.begin() + 7); // Erase symbol
+      cout << ("c " + line);
+      line.erase(line.begin(), line.begin() + 3);
       line.pop_back();
+      line.pop_back();
+      get_tokens(line, 3);
     }
     break;
   case 'r': // reg
-    // We don't care about registers for dimacs
+    cout << ("c " + line);
+      line.erase(line.begin(), line.begin() + 4);
+      line.pop_back();
+      get_tokens(line, 0, true);
     break;
   case 'w': // wire
-    line.erase(line.begin(), line.begin() + 5); // Erase symbol
+    cout << ("c " + line);
+    line.erase(line.begin(), line.begin() + 5);
     line.pop_back();
+    get_tokens(line, 0, true);
     break;
   case 'a':
     if (line[1] == 'n') { // and
       // (x + ~z)(y + ~z)(~x + ~y + z)
+      cout << ("c " + line);
+      line.erase(line.begin(), line.begin() + 4);
+      line.pop_back();
+      line.pop_back();
+      get_tokens(line, 3);
     }
-    else { // always
       // We can ignore always tags
-    }
     break;
   case 'n':
     if (line[1] == 'a') { // nand
       // (x + z)(y + z)(~x + ~y + ~z)
+      cout << ("c " + line);
+      line.erase(line.begin(), line.begin() + 5);
+      line.pop_back();
+      line.pop_back();
+      get_tokens(line, 3);
     }
     else { 
       if(line[2] == 't') { // not
         // (~a v ~x)(a v x)
+        cout << ("c " + line);
+        line.erase(line.begin(), line.begin() + 4);
+        line.pop_back();
+        line.pop_back();
+        get_tokens(line, 3);
       }
       else { // nor
         // (~x + ~z)(~y + ~z)(x + y + z)
+        cout << ("c " + line);
+        line.erase(line.begin(), line.begin() + 4);
+        line.pop_back();
+        line.pop_back();
+        get_tokens(line, 3);
       }
     }
     break;
   case 'x':
     if (line[1] == 'o') { // xor
       // (~x + y + z)(x + ~y + z)(~x + ~y + ~z)(x + y + ~z)
+      cout << ("c " + line);
+      line.erase(line.begin(), line.begin() + 4);
+      line.pop_back();
+      line.pop_back();
+      get_tokens(line, 4);
     }
     else { // xnor
       // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y +z)
+      cout << ("c " + line);
+      line.erase(line.begin(), line.begin() + 5);
+      line.pop_back();
+      line.pop_back();
+      get_tokens(line, 4);
     }
     break;
   case 'e': // end
@@ -110,9 +158,11 @@ void parser::parse_line(string& line, int& line_num) {
 
 // Example Tseytin transformation
 //
-// and g1(a,s0,b)
+// input x,y;
+// output z;
+// and g1(z,x,y)
 // a = 1; s0 = 5; b = 2;
-// (a v ~b)(s0 v ~b)(~a v ~s0 v b)
+// (x v ~z)(y v ~z)(~x v ~y v z)
 
 // c and g1
 // 1 -2 0

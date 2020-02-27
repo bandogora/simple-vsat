@@ -5,6 +5,7 @@ A simple Verilog verification tool based on the Tseytin transformation and [Mini
 ## Requirments
 
 - The verilog file given to the program must be gate level.
+- Currently restrained to two input gates.
 - C++ 11 or newer
 - CMake 3.10 or newer
 
