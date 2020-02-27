@@ -49,3 +49,6 @@ _deps
 
 # Dimacs out file
 out.dimacs
+
+# Build dir
+build

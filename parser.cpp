@@ -41,7 +41,7 @@ void get_tokens(string& str, int cnf, bool wire = false) {
   while ((pos = str.find(delimiters[1])) != string::npos) {
       token = str.substr(0, pos);
       if (wire) {
-        wires.insert(pair(token, wire_num));
+        wires.insert({token, wire_num});
         wire_num++;
       }
       else {
@@ -51,7 +51,7 @@ void get_tokens(string& str, int cnf, bool wire = false) {
   }
 
   if (wire) {
-    wires.insert(pair(str, wire_num));
+    wires.insert({str, wire_num});
     wire_num++;
   }
   else {
@@ -71,19 +71,19 @@ void parser::parse_line(string& line, int& line_num) {
   case 'm': // module
     // Erase beginning and end chars we don't want
     // i.e. "module test(in1,out1);" -> "test(in1,out1"
-    cout << ("c " + line);
+    cout << ("c " + line) << endl;
     break;
   case 'i': // input
     // "input in1,in2;" -> "in1,in2"
-    cout << ("c " + line);
+    cout << ("c " + line) << endl;
     break;
   case 'o':
     if (line[1] == 'u') { // output
-        cout << ("c " + line);
+        cout << ("c " + line) << endl;
     }
     else { // or
       // (~x + z)(~y + z)(x + y + ~z)
-      cout << ("c " + line);
+      cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 3);
       line.pop_back();
       line.pop_back();
@@ -91,13 +91,13 @@ void parser::parse_line(string& line, int& line_num) {
     }
     break;
   case 'r': // reg
-    cout << ("c " + line);
+    cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       get_tokens(line, 0, true);
     break;
   case 'w': // wire
-    cout << ("c " + line);
+    cout << ("c " + line) << endl;
     line.erase(line.begin(), line.begin() + 5);
     line.pop_back();
     get_tokens(line, 0, true);
@@ -105,7 +105,7 @@ void parser::parse_line(string& line, int& line_num) {
   case 'a':
     if (line[1] == 'n') { // and
       // (x + ~z)(y + ~z)(~x + ~y + z)
-      cout << ("c " + line);
+      cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
@@ -116,7 +116,7 @@ void parser::parse_line(string& line, int& line_num) {
   case 'n':
     if (line[1] == 'a') { // nand
       // (x + z)(y + z)(~x + ~y + ~z)
-      cout << ("c " + line);
+      cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
@@ -125,7 +125,7 @@ void parser::parse_line(string& line, int& line_num) {
     else { 
       if(line[2] == 't') { // not
         // (~a v ~x)(a v x)
-        cout << ("c " + line);
+        cout << ("c " + line) << endl;
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
@@ -133,7 +133,7 @@ void parser::parse_line(string& line, int& line_num) {
       }
       else { // nor
         // (~x + ~z)(~y + ~z)(x + y + z)
-        cout << ("c " + line);
+        cout << ("c " + line) << endl;
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
@@ -144,7 +144,7 @@ void parser::parse_line(string& line, int& line_num) {
   case 'x':
     if (line[1] == 'o') { // xor
       // (~x + y + z)(x + ~y + z)(~x + ~y + ~z)(x + y + ~z)
-      cout << ("c " + line);
+      cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
@@ -152,7 +152,7 @@ void parser::parse_line(string& line, int& line_num) {
     }
     else { // xnor
       // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y +z)
-      cout << ("c " + line);
+      cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
