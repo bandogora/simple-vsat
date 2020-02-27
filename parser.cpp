@@ -28,7 +28,7 @@ const string delimiters = "(,";
 unordered_map<string, int> wires;
 int wire_num = 1;
 
-void get_dimacss(string& str, int gate) {
+void get_dimacs(string& str, int gate) {
   size_t pos;
   string wire;
   string cnf [3];
@@ -65,33 +65,50 @@ void get_dimacss(string& str, int gate) {
     // (~x + z)(~y + z)(x + y + ~z)
     cout << "-" << cnf[1] << " " << cnf[0] << " 0" << endl;
     cout << "-" << cnf[2] << " " << cnf[0] << " 0" << endl;
-    cout << cnf[1] << " " << cnf[2] << "-" << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " " << cnf[2] << " -" << cnf[0] << " 0" << endl;
     break;
   case 2: // and
     // (x + ~z)(y + ~z)(~x + ~y + z)
-
+    cout << cnf[1] << " -" << cnf[0] << " 0" << endl;
+    cout << cnf[2] << " -" << cnf[0] << " 0" << endl;
+    cout << "-" << cnf[1] << " -" << cnf[2] << " " << cnf[0] << " 0" << endl;
     break;
   case 3: // nand
     // (x + z)(y + z)(~x + ~y + ~z)
-    
+    cout << cnf[1] << " " << cnf[0] << " 0" << endl;
+    cout << cnf[2] << " " << cnf[0] << " 0" << endl;
+    cout << "-" << cnf[1] << " -" << cnf[2] << " -" << cnf[0] << " 0" << endl;
     break;
   case 4: // not
-    // (~a v ~x)(a v x)
-    
+    // (~x v ~z)(x v z)
+    cout << "-" << cnf[1] << " -" << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " " << cnf[0] << " 0" << endl;
     break;
   case 5: //nor
     // (~x + ~z)(~y + ~z)(x + y + z)
-    
+    cout << "-" << cnf[1] << " -" << cnf[0] << " 0" << endl;
+    cout << "-" << cnf[2] << " -" << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " " << cnf[2] << " " << cnf[0] << " 0" << endl;
     break;
   case 6: //xor
     // (~x + y + z)(x + ~y + z)(~x + ~y + ~z)(x + y + ~z)
-    
+    cout << "-" << cnf[1] << " " << cnf[2] << " " << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " -" << cnf[2] << " " << cnf[0] << " 0" << endl;
+    cout << "-" << cnf[1] << " -" << cnf[2] << " -" << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " " << cnf[2] << " -" << cnf[0] << " 0" << endl;
     break;
   case 7: // xnor
-    // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y +z)
-    
+    // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y + z)
+    cout << "-" << cnf[1] << " -" << cnf[2] << " " << cnf[0] << " 0" << endl;
+    cout << "-" << cnf[1] << " " << cnf[2] << " -" << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " -" << cnf[2] << " -" << cnf[0] << " 0" << endl;
+    cout << cnf[1] << " " << cnf[2] << " " << cnf[0] << " 0" << endl;
     break;
-  
+  case 8: // input
+    // Initialize input states
+    for (int j = 0; j <= i; j++) {
+      cout << cnf[j] << " 0" << endl;
+    }
   default:
     break;
   }
@@ -114,34 +131,35 @@ void parser::parse_line(string& line, int& line_num) {
     cout << ("c " + line) << endl;
     line.erase(line.begin(), line.begin() + 6);
     line.pop_back();
-    get_dimacss(line, 0);
+    get_dimacs(line, 0);
+    get_dimacs(line, 8);
     break;
   case 'o':
     if (line[1] == 'u') { // output
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 7);
       line.pop_back();
-      get_dimacss(line, 0);
+      get_dimacs(line, 0);
     }
     else { // or
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 3);
       line.pop_back();
       line.pop_back();
-      get_dimacss(line, 1);
+      get_dimacs(line, 1);
     }
     break;
   case 'r': // reg
     cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
-      get_dimacss(line, 0);
+      get_dimacs(line, 0);
     break;
   case 'w': // wire
     cout << ("c " + line) << endl;
     line.erase(line.begin(), line.begin() + 5);
     line.pop_back();
-    get_dimacss(line, 0);
+    get_dimacs(line, 0);
     break;
   case 'a':
     if (line[1] == 'n') { // and
@@ -149,7 +167,7 @@ void parser::parse_line(string& line, int& line_num) {
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
-      get_dimacss(line, 2);
+      get_dimacs(line, 2);
     }
       // We can ignore always tags
     break;
@@ -159,7 +177,7 @@ void parser::parse_line(string& line, int& line_num) {
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
-      get_dimacss(line, 3);
+      get_dimacs(line, 3);
     }
     else { 
       if(line[2] == 't') { // not
@@ -167,14 +185,14 @@ void parser::parse_line(string& line, int& line_num) {
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
-        get_dimacss(line, 4);
+        get_dimacs(line, 4);
       }
       else { // nor
         cout << ("c " + line) << endl;
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
-        get_dimacss(line, 5);
+        get_dimacs(line, 5);
       }
     }
     break;
@@ -184,14 +202,14 @@ void parser::parse_line(string& line, int& line_num) {
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
-      get_dimacss(line, 6);
+      get_dimacs(line, 6);
     }
     else { // xnor
       cout << ("c " + line) << endl;
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
-      get_dimacss(line, 7);
+      get_dimacs(line, 7);
     }
     break;
   case 'e': // end
