@@ -10,7 +10,7 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_executable(simple-vsat main.cpp parser.cpp)
+add_executable(simple-vsat main.cpp parser.cpp to_dimacs.cpp)
 
 # Check directory for git
 find_package(Git QUIET)

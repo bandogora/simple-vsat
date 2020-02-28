@@ -18,6 +18,7 @@
  *       at the bottom of each Verilog file so that your program can read it from there.
  */
 
+#include <to_dimacs.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -25,8 +26,9 @@
 #include <parser.h>
 //#include <minisat.h> some how include minisat
 
-using namespace Parse;
 using namespace std;
+
+int unroll_num;
 
 int isNumber(const char str[]) {
   string numString;
@@ -35,8 +37,8 @@ int isNumber(const char str[]) {
     numString += str[i];
     i++;
   }
-  int num = atoi(numString.c_str());
-  return num;
+  unroll_num = atoi(numString.c_str());
+  return unroll_num;
 }
 
 int main(int argc, char const *argv[]) {
@@ -52,10 +54,14 @@ int main(int argc, char const *argv[]) {
   }
 
   // Check second argument is a number
-  if (!isNumber(argv[2])) {
+  if(!argv[2]) {
+    unroll_num = 1;
+  }
+  else if (!isNumber(argv[2])) {
     cout << argv[2] << " is not a positive integer" << endl;
     exit(1);
   }
+
   // Initiate vars
   string line;
   int line_num = 1;
@@ -68,7 +74,7 @@ int main(int argc, char const *argv[]) {
   }
 
   // Create Parser instance
-  parser file;
+  Parse::parser file;
 
   // Let the user know whats happening
   cout << "Parsing..." << endl;
