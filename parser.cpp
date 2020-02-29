@@ -7,6 +7,13 @@
 using namespace Parse;
 using namespace std;
 
+extern vector<string> out;
+
+// C++ REGEX is bad and I am wasting too much time on it
+// const regex wires("(?<=\()(.*?)(?=\s*\))");
+// const regex vars("^\S*\s+|;");
+// const regex ws("^\s+");
+
 // Time to reinvent that wheel, poorly!
 void parser::parse_line(string& line, int& line_num) {
   // Init convert class
@@ -19,11 +26,11 @@ void parser::parse_line(string& line, int& line_num) {
   case 'm': // module
     // Erase beginning and end chars we don't want
     // i.e. "module test(in1,out1);" -> "test(in1,out1"
-    cout << ("c " + line) << endl;
+    out.push_back("c " + line);
     break;
   case 'i': // input
     // "input in1,in2;" -> "in1,in2"
-    cout << ("c " + line) << endl;
+    out.push_back("c " + line);
     line.erase(line.begin(), line.begin() + 6);
     line.pop_back();
     new_line.get_dimacs(line, 0);
@@ -32,7 +39,7 @@ void parser::parse_line(string& line, int& line_num) {
     break;
   case 'o':
     if (line[1] == 'u') { // output
-      cout << ("c " + line) << endl;
+      out.push_back("c " + line);
       line.erase(line.begin(), line.begin() + 7);
       line.pop_back();
       new_line.get_dimacs(line, 0);
@@ -40,7 +47,7 @@ void parser::parse_line(string& line, int& line_num) {
       new_line.get_dimacs(line, 9);
     }
     else { // or
-      cout << ("c " + line) << endl;
+      out.push_back("c unrolling: " + line);
       line.erase(line.begin(), line.begin() + 3);
       line.pop_back();
       line.pop_back();
@@ -48,20 +55,18 @@ void parser::parse_line(string& line, int& line_num) {
     }
     break;
   case 'r': // reg
-    cout << ("c " + line) << endl;
-      line.erase(line.begin(), line.begin() + 4);
-      line.pop_back();
-      new_line.get_dimacs(line, 0);
+    line.erase(line.begin(), line.begin() + 4);
+    line.pop_back();
+    new_line.get_dimacs(line, 0);
     break;
   case 'w': // wire
-    cout << ("c " + line) << endl;
     line.erase(line.begin(), line.begin() + 5);
     line.pop_back();
     new_line.get_dimacs(line, 0);
     break;
   case 'a':
     if (line[1] == 'n') { // and
-      cout << ("c " + line) << endl;
+      out.push_back("c unrolling: " + line);
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
@@ -71,7 +76,7 @@ void parser::parse_line(string& line, int& line_num) {
     break;
   case 'n':
     if (line[1] == 'a') { // nand
-      cout << ("c " + line) << endl;
+      out.push_back("c unrolling: " + line);
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();
@@ -79,14 +84,14 @@ void parser::parse_line(string& line, int& line_num) {
     }
     else { 
       if(line[2] == 't') { // not
-        cout << ("c " + line) << endl;
+        out.push_back("c unrolling: " + line);
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
         new_line.get_dimacs(line, 4);
       }
       else { // nor
-        cout << ("c " + line) << endl;
+        out.push_back("c unrolling: " + line);
         line.erase(line.begin(), line.begin() + 4);
         line.pop_back();
         line.pop_back();
@@ -96,14 +101,14 @@ void parser::parse_line(string& line, int& line_num) {
     break;
   case 'x':
     if (line[1] == 'o') { // xor
-      cout << ("c " + line) << endl;
+      out.push_back("c unrolling: " + line);
       line.erase(line.begin(), line.begin() + 4);
       line.pop_back();
       line.pop_back();
       new_line.get_dimacs(line, 6);
     }
     else { // xnor
-      cout << ("c " + line) << endl;
+      out.push_back("c unrolling: " + line);
       line.erase(line.begin(), line.begin() + 5);
       line.pop_back();
       line.pop_back();

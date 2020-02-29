@@ -28,7 +28,28 @@
 
 using namespace std;
 
+// Create regex for file ending
+const regex v_file("^.*\.(vh|v)$");
+
 int unroll_num;
+extern int pvals [2];
+extern vector<string> out;
+
+void write_dimacs() {
+  // Open new dimacs file for writing
+  ofstream outfile ("out.dimacs");
+
+  // Write p line
+  outfile << "p cnf " << pvals[0] << " " << pvals[1] << endl;
+
+  // Write remaining lines in order
+  for (vector<string>::iterator it = out.begin(), end = out.end(); it != end; ++it) {
+    outfile << *it << endl;
+  }
+
+  // Close dimacs file
+  outfile.close();
+}
 
 int isNumber(const char str[]) {
   string numString;
@@ -42,9 +63,6 @@ int isNumber(const char str[]) {
 }
 
 int main(int argc, char const *argv[]) {
-  // Create regex for file ending
-  const regex v_file("^.*\.(vh|v)$");
-
   // Check first argument  is a verilog file
   smatch m;
   string str = argv[1];
@@ -87,5 +105,7 @@ int main(int argc, char const *argv[]) {
     cout << "Error while reading file";
     exit(1);
   }
+
+  write_dimacs();
   return 0;
 }
