@@ -2,12 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(simple-vsat)
 
-if(MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(-Wall -Wextra)
-endif()
-
 include_directories(${PROJECT_SOURCE_DIR})
 
 add_executable(simple-vsat main.cpp parser.cpp to_dimacs.cpp)
