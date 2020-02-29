@@ -22,8 +22,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sys/wait.h>
 #include <regex>
 #include <parser.h>
+#include <unistd.h>
 //#include <minisat.h> some how include minisat
 
 using namespace std;
@@ -107,5 +109,16 @@ int main(int argc, char const *argv[]) {
   }
 
   write_dimacs();
+
+  // Call MiniSAT
+  int pid, status;
+  if (pid = fork()) {
+    waitpid(pid, &status, 0);
+  }
+  else {
+    const char exec[] = "./minisat/minisat";
+    execl(exec, exec, "./out.dimacs", NULL);
+  }
+
   return 0;
 }
