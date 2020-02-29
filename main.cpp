@@ -51,6 +51,8 @@ void write_dimacs() {
 
   // Close dimacs file
   outfile.close();
+
+  cout << "Dimacs file written to './out.dimacs'" << endl;
 }
 
 int isNumber(const char str[]) {
@@ -66,6 +68,13 @@ int isNumber(const char str[]) {
 
 int main(int argc, char const *argv[]) {
   // Check first argument  is a verilog file
+
+  if (!argv[1]) {
+    cout << "No file to read!" << endl;
+    cout << "Usage: simple-vsat <path-to-verilog> [number-of-relation-unrolls]" << endl;
+    exit(1);
+  }
+
   smatch m;
   string str = argv[1];
   if (!regex_match(str, m, v_file)) {
