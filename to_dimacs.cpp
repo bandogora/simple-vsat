@@ -23,7 +23,7 @@ using namespace std;
 
 const string delimiters = "(,";
 vector<string> prev_out;
-vector<string> prev_in;
+vector<string> next_in;
 unordered_map<string, int> wires;
 int wire_num = 1;
 extern int unroll_num;
@@ -125,19 +125,19 @@ void convert::get_dimacs(string& str, int gate) {
       // Initialize input states
       for (int m = 0; m < i - 1; m++) {
         if (cnf[m + j] != "") {
-          if (!j) {
-            out.push_back("-" + cnf[m + j] + " 0");
+          if ((unroll_num == 1) || (!j && !(m % 2))) {
+            out.push_back("-" + cnf[m] + " 0");
             pvals[1] += 1;
           }
-          else if (prev_out.size() > m) { // Output declared before input
-            for (int n = 0; n < prev_in.size(); n++) {
-              out.push_back(cnf[m + j] + " -" + prev_out[n] + " 0");
-              out.push_back("-" + cnf[m + j] + " " + prev_out[n] + " 0");
+          else if (prev_out.size() > m && (m % 2)) { // Output declared before input
+            for (int h = 0; h < next_in.size()/2; h++) {
+              out.push_back(prev_out[h] + " -" + cnf[m + j * 2] + " 0");
+              out.push_back("-" + prev_out[h] + " " + cnf[m + j * 2] + " 0");
               pvals[1] += 2;
             }
           }
-          else {
-            prev_in.push_back(cnf[m + j]);
+          else if (m % 2) {
+            next_in.push_back(cnf[m + j * 2]);
           }
         }
       }
@@ -146,19 +146,19 @@ void convert::get_dimacs(string& str, int gate) {
       // Initialize input states
       for (int m = 0; m < i - 1; m++) {
         if (cnf[m + j] != "") {
-          if (j + 1 == unroll_num) {
-            out.push_back(cnf[m + j]+ " 0");
+          if (j + 1 == unroll_num && !(m % 2)) {
+            out.push_back(cnf[m]+ " 0");
             pvals[1] += 1;
           }
-          else if ((prev_in.size() > m)) { // Input declared before output
-            for (int n = 0; n < prev_in.size(); n++) {
-              out.push_back(prev_in[n] + " -" + cnf[m + j] + " 0");
-              out.push_back("-" + prev_in[n] + " " + cnf[m + j] + " 0");
+          else if ((next_in.size() > m) && (m % 2)) { // Input declared before output
+            for (int h = 0; h < next_in.size()/2; h++) {
+              out.push_back(cnf[m + j * 2] + " -" + next_in[h + j] + " 0");
+              out.push_back("-" + cnf[m + j * 2] + " " + next_in[h + j] + " 0");
               pvals[1] += 2;
             }
           }
-          else {
-            prev_out.push_back(cnf[m + j]);
+          else if (m % 2) {
+            prev_out.push_back(cnf[m + j * 2]);
           }
         }
       }
