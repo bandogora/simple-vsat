@@ -2,6 +2,11 @@
 
 A simple Verilog verification tool based on the Tseytin transformation and [MiniSat](minisat.se) solver.
 
+What it does:
+1. Checks reachability by parsing Verilog modules
+2. Unrolls the transition relation and converts it to a dimacs formatted CNF
+3. Calls a SAT solver
+
 ## Requirments
 
 - The Verilog file given to the program must be gate level.

@@ -4,20 +4,6 @@
  * 3. Calls a SAT solver
  */
 
-/* Requirements:
- * 1. It takes two inputs from command line:
- *      i. the name of the Verilog file to read
- *      ii. the number of times to unroll the transition relation in the symbolic search.
- *
- * 2. The SAT solver will check whether the formula is satisfiable, and the result will
- *    reveal whether the target state is reachable in some number of transitions from the initial state.
- */
-
-/*
- * Note: The target states listed in the table above are reproduced as a comment
- *       at the bottom of each Verilog file so that your program can read it from there.
- */
-
 #include <to_dimacs.h>
 #include <iostream>
 #include <fstream>
@@ -26,7 +12,6 @@
 #include <regex>
 #include <parser.h>
 #include <unistd.h>
-//#include <minisat.h> some how include minisat
 
 using namespace std;
 
@@ -55,6 +40,7 @@ void write_dimacs() {
   cout << "Dimacs file written to './out.dimacs'" << endl;
 }
 
+// Check and return second argument number
 int isNumber(const char str[]) {
   string numString;
   int i = 0;
@@ -67,14 +53,18 @@ int isNumber(const char str[]) {
 }
 
 int main(int argc, char const *argv[]) {
-  // Check first argument  is a verilog file
+  string line;
+  int line_num = 1;
+  ifstream f (argv[1]);
 
+  // Check for first argument
   if (!argv[1]) {
     cout << "No file to read!" << endl;
     cout << "Usage: simple-vsat <path-to-verilog> [number-of-relation-unrolls]" << endl;
     exit(1);
   }
 
+  // Verify first argument is a verilog file
   smatch m;
   string str = argv[1];
   if (!regex_match(str, m, v_file)) {
@@ -91,11 +81,6 @@ int main(int argc, char const *argv[]) {
     exit(1);
   }
 
-  // Initiate vars
-  string line;
-  int line_num = 1;
-  ifstream f (argv[1]);
-
   // Open verilog file
   if (!f.is_open()) {
     cout << "Error while opening file";
@@ -105,7 +90,7 @@ int main(int argc, char const *argv[]) {
   // Create Parser instance
   Parse::parser file;
 
-  // Let the user know whats happening
+  // Parse the verilog file line by line
   cout << "Parsing..." << endl;
   while(getline(f, line)) {
     file.parse_line(line, line_num);
@@ -117,6 +102,7 @@ int main(int argc, char const *argv[]) {
     exit(1);
   }
 
+  // Write our conversions to dimacs out file
   write_dimacs();
 
   // Call MiniSAT

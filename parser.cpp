@@ -9,7 +9,7 @@ using namespace std;
 
 extern vector<string> out;
 
-// C++ REGEX is bad and I am wasting too much time on it
+// C++ REGEX not working as expected
 // const regex wires("(?<=\()(.*?)(?=\s*\))");
 // const regex vars("^\S*\s+|;");
 // const regex ws("^\s+");
@@ -19,13 +19,12 @@ void parser::parse_line(string& line, int& line_num) {
   // Init convert class
   Convert::convert new_line;
 
-  // get just the symbol
+  // Get just the symbol
   const regex symbol("^[^\s]*");
 
   switch (line[0]) {
   case 'm': // module
-    // Erase beginning and end chars we don't want
-    // i.e. "module test(in1,out1);" -> "test(in1,out1"
+    // "module test(in1,out1);" -> "module test(in1,out1)"
     out.push_back("c " + line);
     break;
   case 'i': // input
@@ -33,8 +32,11 @@ void parser::parse_line(string& line, int& line_num) {
     out.push_back("c " + line);
     line.erase(line.begin(), line.begin() + 6);
     line.pop_back();
+
+    // Send line to record inputs
     new_line.get_dimacs(line, 0);
-    // Send again to initialize inputs
+
+    // Send line again so inputs can also be wires
     new_line.get_dimacs(line, 8);
     break;
   case 'o':
@@ -43,7 +45,6 @@ void parser::parse_line(string& line, int& line_num) {
       line.erase(line.begin(), line.begin() + 7);
       line.pop_back();
       new_line.get_dimacs(line, 0);
-      // Send again to initialize outputs
       new_line.get_dimacs(line, 9);
     }
     else { // or
@@ -72,7 +73,7 @@ void parser::parse_line(string& line, int& line_num) {
       line.pop_back();
       new_line.get_dimacs(line, 2);
     }
-      // We can ignore always tags
+    // We can ignore always tags
     break;
   case 'n':
     if (line[1] == 'a') { // nand
