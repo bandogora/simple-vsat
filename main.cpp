@@ -16,7 +16,7 @@
 using namespace std;
 
 // Create regex for file ending
-const regex v_file("^.*\.(vh|v)$");
+const regex v_file("^.*\\.(vh|v)$");
 
 int unroll_num;
 extern int pvals [2];

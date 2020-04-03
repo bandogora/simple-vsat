@@ -7,6 +7,7 @@ namespace Convert {
   class convert {
     public:
       void get_dimacs(std::string& str, int gate);
+      void set_state(std::string& reg);
   };
 }
 

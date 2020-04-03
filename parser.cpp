@@ -3,131 +3,119 @@
 #include <parser.h>
 #include <regex>
 #include <string>
+#include <unordered_map>
 
 using namespace Parse;
 using namespace std;
 
 extern vector<string> out;
+extern unordered_map<string, int> wires;
+extern vector<array<string, 2>> reg_wire_state;
+extern int unroll_num;
 
-// C++ REGEX not working as expected
-// const regex wires("(?<=\()(.*?)(?=\s*\))");
-// const regex vars("^\S*\s+|;");
-// const regex ws("^\s+");
+// Get just the symbol
+const regex symbol("^[^\\s]*");
 
-// Time to reinvent that wheel, poorly!
+// Find the register at the beginning of the line
+const regex reg("(.+?)(?=<)");
+
+// Find the wire following the register
+const regex wire("^.+?[=]");
+
 void parser::parse_line(string& line, int& line_num) {
   // Init convert class
   Convert::convert new_line;
 
-  // Get just the symbol
-  const regex symbol("^[^\s]*");
-
   switch (line[0]) {
-  case 'm': // module
-    // "module test(in1,out1);" -> "module test(in1,out1)"
-    out.push_back("c " + line);
-    break;
-  case 'i': // input
-    // "input in1,in2;" -> "in1,in2"
-    out.push_back("c " + line);
-    line.erase(line.begin(), line.begin() + 6);
-    line.pop_back();
-
-    // Send line to record inputs
-    new_line.get_dimacs(line, 0);
-
-    // Send line again so inputs can also be wires
-    new_line.get_dimacs(line, 8);
-    break;
-  case 'o':
-    if (line[1] == 'u') { // output
+    case 'm': // module
       out.push_back("c " + line);
-      line.erase(line.begin(), line.begin() + 7);
-      line.pop_back();
+      break;
+    case 'i': // input
+      out.push_back("c " + line);
+
+      // Send line to record inputs
       new_line.get_dimacs(line, 0);
-      new_line.get_dimacs(line, 9);
-    }
-    else { // or
-      out.push_back("c unrolling: " + line);
-      line.erase(line.begin(), line.begin() + 3);
-      line.pop_back();
-      line.pop_back();
-      new_line.get_dimacs(line, 1);
-    }
-    break;
-  case 'r': // reg
-    line.erase(line.begin(), line.begin() + 4);
-    line.pop_back();
-    new_line.get_dimacs(line, 0);
-    break;
-  case 'w': // wire
-    line.erase(line.begin(), line.begin() + 5);
-    line.pop_back();
-    new_line.get_dimacs(line, 0);
-    break;
-  case 'a':
-    if (line[1] == 'n') { // and
-      out.push_back("c unrolling: " + line);
-      line.erase(line.begin(), line.begin() + 4);
-      line.pop_back();
-      line.pop_back();
-      new_line.get_dimacs(line, 2);
-    }
-    // We can ignore always tags
-    break;
-  case 'n':
-    if (line[1] == 'a') { // nand
-      out.push_back("c unrolling: " + line);
-      line.erase(line.begin(), line.begin() + 5);
-      line.pop_back();
-      line.pop_back();
-      new_line.get_dimacs(line, 3);
-    }
-    else { 
-      if(line[2] == 't') { // not
-        out.push_back("c unrolling: " + line);
-        line.erase(line.begin(), line.begin() + 4);
-        line.pop_back();
-        line.pop_back();
-        new_line.get_dimacs(line, 4);
+
+      // Send line again so inputs can also be wires
+      new_line.get_dimacs(line, 8);
+      break;
+    case 'o':
+      if (line[1] == 'u') { // output
+        out.push_back("c " + line);
+        new_line.get_dimacs(line, 0);
+        new_line.get_dimacs(line, 9);
       }
-      else { // nor
+      else { // or
         out.push_back("c unrolling: " + line);
-        line.erase(line.begin(), line.begin() + 4);
-        line.pop_back();
-        line.pop_back();
-        new_line.get_dimacs(line, 5);
+        new_line.get_dimacs(line, 1);
       }
-    }
-    break;
-  case 'x':
-    if (line[1] == 'o') { // xor
-      out.push_back("c unrolling: " + line);
-      line.erase(line.begin(), line.begin() + 4);
-      line.pop_back();
-      line.pop_back();
-      new_line.get_dimacs(line, 6);
-    }
-    else { // xnor
-      out.push_back("c unrolling: " + line);
-      line.erase(line.begin(), line.begin() + 5);
-      line.pop_back();
-      line.pop_back();
-      new_line.get_dimacs(line, 7);
-    }
-    break;
-  case 'e': // end
-    // We can ignore end tags
-    break;
-  default:
-    // Symbol not recognized so ignore it
-    smatch m;
-    if (regex_match(line, m, symbol)) {
-      cout << "Unrecognized symbol '" << m[0] << "' on line " << line_num << ", ignoring" << endl;
-    }
-    else {
-      cout << "Unrecognized symbol on line " << line_num << ", ignoring" << endl;
-    }
-    break;
+      break;
+    case 'r': // reg
+      new_line.get_dimacs(line, 10);
+      break;
+    case 'w': // wire
+      new_line.get_dimacs(line, 0);
+      break;
+    case 'a':
+      if (line[1] == 'n') { // and
+        out.push_back("c unrolling: " + line);
+        new_line.get_dimacs(line, 2);
+      }
+      // We can ignore always tags
+      break;
+    case 'n':
+      if (line[1] == 'a') { // nand
+        out.push_back("c unrolling: " + line);
+        new_line.get_dimacs(line, 3);
+      }
+      else { 
+        if(line[2] == 't') { // not
+          out.push_back("c unrolling: " + line);
+          new_line.get_dimacs(line, 4);
+        }
+        else { // nor
+          out.push_back("c unrolling: " + line);
+          new_line.get_dimacs(line, 5);
+        }
+      }
+      break;
+    case 'x':
+      if (line[1] == 'o') { // xor
+        out.push_back("c unrolling: " + line);
+        new_line.get_dimacs(line, 6);
+      }
+      else { // xnor
+        out.push_back("c unrolling: " + line);
+        new_line.get_dimacs(line, 7);
+      }
+      break;
+    case 'e': // end
+      // We can ignore end tags
+      break;
+    case '/': // comment
+      if (line[2] == 'S') { // State string
+            new_line.set_state(line);
+      }
+      // We can ignore comments
+      break;
+    default:
+      smatch m;
+      // Check for register set
+      if ((unroll_num > 1) && regex_search(line, m, reg)) {
+        auto it = wires.find(m.str(0) += "0");
+        if (it != wires.end()) {
+          line.pop_back();
+          reg_wire_state.push_back({m.str(0), regex_replace(line, wire, "")});
+          break;
+        }
+      }
+      // Symbol not recognized so ignore it
+      else if (regex_match(line, m, symbol)) {
+        cout << "Unrecognized symbol '" << m.str(0) << "' on line " << line_num << ", ignoring" << endl;
+      }
+      else {
+        cout << "Unrecognized symbol on line " << line_num << ", ignoring" << endl;
+      }
+      break;
   }
 }
