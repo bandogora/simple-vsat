@@ -10,9 +10,16 @@ What it does:
 ## Requirments
 
 - The Verilog file given to the program must be gate level.
-- Currently constrained to two input gates and no white space between arguments (should look like `input in1,in2` and `or g1(out1,in1,in2)`).
-- C++ 14 or newer
+- C++ 11 or newer
 - CMake 3.10 or newer
+- The desired end state of your outputs must be made as a comment at the end of the file. Your comment should be formated like this `//State:0100` with as many bits as there are outputs.
+- Unrolls will be connected by register. Each register must bet set on a new line. ex/
+```   
+always @(posedge clock) begin
+S1<=NS1;
+S0<=NS0;
+end
+```
 
 ## Install
 
