@@ -10,6 +10,7 @@ What it does:
 ## Requirments
 
 - The Verilog file given to the program must be gate level.
+- Gates must be two input only
 - C++ 11 or newer
 - CMake 3.10 or newer
 - The desired end state of your outputs must be made as a comment at the end of the file. Your comment should be formated like this `//State:0100` with as many bits as there are outputs.
