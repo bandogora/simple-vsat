@@ -41,7 +41,7 @@ void parser::parse_line(string& line, int& line_num) {
       break;
     case 'o':
       if (line[1] == 'u') { // output
-        out.push_back("c " + line);
+
         new_line.get_dimacs(line, 0);
         new_line.get_dimacs(line, 9);
       }
