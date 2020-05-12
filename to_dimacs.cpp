@@ -41,24 +41,6 @@ const regex find_wires("([^,()\\s]+)(?=\\s*\\)|\\s*,|\\s*;)");
 // Get digits from state line
 const regex digit("\\d");
 
-// Store wires as "cnf" numbers
-vector<string> cnf;
-
-void get_wires(int gate, string wire) {
-  // Do this for as many times as unrolls were specified
-  for (int k = 0; k < unroll_num; k++) {
-    if (!gate || (gate == 10)) {
-      // Store each "wire" in a map as a name and identifying number
-      wires.insert({wire + to_string(k), wire_num});
-      wire_num++;
-    }
-    else {
-      // Push number that corresponds to wire name to vector for later use
-      cnf.push_back(to_string(wires.find(wire + to_string(k))->second));
-    }
-  }
-}
-
 void convert::get_dimacs(string& str, int gate) {
   // Regex match store 
   smatch m;
@@ -66,15 +48,25 @@ void convert::get_dimacs(string& str, int gate) {
   // Maintain string minus the symbol for additional runs
   string new_str = str;
 
+  // Store wires as "cnf" numbers
+  vector<string> cnf;
+
   // Find wires and put into cnf vector
   while(regex_search(str, m, find_wires)) {
-    get_wires(gate, m.str(0));
+    // Do this for as many times as unrolls were specified
+    for (int k = 0; k < unroll_num; k++) {
+      if (!gate || (gate == 10)) {
+        // Store each "wire" in a map as a name and identifying number
+        wires.insert({m.str(0) + to_string(k), wire_num});
+        wire_num++;
+      }
+      else {
+        // Push number that corresponds to wire name to vector for later use
+        cnf.push_back(to_string(wires.find(m.str(0) + to_string(k))->second));
+      }
+    }
     str = m.suffix(); 
   }
-
-  // Once more to get last wire
-  // regex_search(str, m, find_wires);
-  // get_wires(gate, m.str(0));
 
 
   // Do this for as many times as unrolls were specified
@@ -84,54 +76,54 @@ void convert::get_dimacs(string& str, int gate) {
     switch (gate) {
       case 1: // or
         // (~x + z)(~y + z)(x + y + ~z)
-        out.push_back("-"+ cnf[2 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back("-"+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " "+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back("-"+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
 
         // Count number of clauses
         pvals[1] += 3;
         break;
       case 2: // and
         // (x + ~z)(y + ~z)(~x + ~y + z)
-        out.push_back(cnf[2 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back("-"+ cnf[2 + j]+ " -"+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
         pvals[1] += 3;
         break;
       case 3: // nand
         // (x + z)(y + z)(~x + ~y + ~z)
-        out.push_back(cnf[2 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back("-"+ cnf[2 + j]+ " -"+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
         pvals[1] += 3;
         break;
       case 4: // not
         // (~x v ~z)(x v z)
-        out.push_back("-"+ cnf[2 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " "+ cnf[0 + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " 0");
         pvals[1] += 2;
         break;
       case 5: //nor
         // (~x + ~z)(~y + ~z)(x + y + z)
-        out.push_back("-"+ cnf[2 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back("-"+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " "+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back("-"+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
         pvals[1] += 3;
         break;
       case 6: //xor
         // (~x + y + z)(x + ~y + z)(~x + ~y + ~z)(x + y + ~z)
-        out.push_back("-"+ cnf[2 + j]+ " "+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " -"+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back("-"+ cnf[2 + j]+ " -"+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " "+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
         pvals[1] += 4;
         break;
       case 7: // xnor
         // (~x + ~y + z)(~x + y + ~z)(x + ~y + ~z)(x + y + z)
-        out.push_back("-"+ cnf[2 + j]+ " -"+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
-        out.push_back("-"+ cnf[2 + j]+ " "+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " -"+ cnf[4 + j]+ " -"+ cnf[0 + j]+ " 0");
-        out.push_back(cnf[2 + j]+ " "+ cnf[4 + j]+ " "+ cnf[0 + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back("-"+ cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " -"+ cnf[unroll_num + j]+ " -"+ cnf[(2 * unroll_num) + j]+ " 0");
+        out.push_back(cnf[0 + j]+ " "+ cnf[unroll_num + j]+ " "+ cnf[(2 * unroll_num) + j]+ " 0");
         pvals[1] += 4;
         break;
       default: break;
@@ -174,18 +166,21 @@ void convert::set_state(string& reg) {
   for (int j = 0; j < reg_wire_state.size(); j++) {
     if (unroll_num > 1) {
       for (int k = 0; k < unroll_num - 1; k++) {
-        out.push_back("c connect reg " + reg_wire_state[j][0] + to_string(k) + " to reg " + reg_wire_state[j][0] + to_string(k + 1));
-        string first_wire = to_string(wires.find(reg_wire_state[j][0] + to_string(k))->second);
-        string second_wire = to_string(wires.find(reg_wire_state[j][1] + to_string(k + 1))->second);
+        out.push_back("c connect reg wire " + reg_wire_state[j][1] + to_string(k) + " to reg wire " + reg_wire_state[j][0] + to_string(k + 1));
+        string first_wire = to_string(wires.find(reg_wire_state[j][1] + to_string(k))->second);
+        string second_wire = to_string(wires.find(reg_wire_state[j][0] + to_string(k + 1))->second);
         out.push_back(first_wire + " " + second_wire + " 0");
+        pvals[1] += 1;
       }
     }
-    out.push_back("c set final reg " + reg_wire_state[j][1] + to_string(unroll_num - 1) + " to state given");
+    out.push_back("c set final reg wire " + reg_wire_state[j][1] + to_string(unroll_num - 1) + " to state given");
     if (states[j] == "1") {
       out.push_back(to_string(wires.find(reg_wire_state[j][1] + to_string(unroll_num - 1))->second) + " 0");
+      pvals[1] += 1;
     }
     else if (states[j] == "0") {
      out.push_back("-" + to_string(wires.find(reg_wire_state[j][1] + to_string(unroll_num - 1))->second) + " 0");
+     pvals[1] += 1;
     }
   }
 }

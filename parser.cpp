@@ -101,7 +101,7 @@ void parser::parse_line(string& line, int& line_num) {
     default:
       smatch m;
       // Check for register set
-      if ((unroll_num > 1) && regex_search(line, m, reg)) {
+      if (regex_search(line, m, reg)) {
         auto it = wires.find(m.str(0) += "0");
         if (it != wires.end()) {
           line.pop_back();
