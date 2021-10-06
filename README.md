@@ -1,6 +1,6 @@
 # simple-vsat
 
-A simple Verilog verification tool based on the Tseytin transformation and [MiniSat](minisat.se) solver.
+A simple Verilog verification tool based on the Tseytin transformation and [MiniSat](http://minisat.se) solver.
 
 What it does:
 1. Checks reachability by parsing Verilog modules
